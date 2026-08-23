@@ -18,7 +18,7 @@ F1 & harmonic mean of Precision and Recall \\
 \textbf{Component} & \textbf{Setting} \\
 \midrule
 Detector & Faster R-CNN ResNet-50-FPN \\
-Classes & text (Background internally->F-CNN) \\
+Detection class & text (background handled internally) \\
 Optimizer & SGD \\
 Metrics & Precision, Recall, F1 at IoU 0.5 \\
 Initial teacher & trained on synthetic pages \\
@@ -53,19 +53,23 @@ White background & about 0.75 & simpler, but adds white-box artifacts \\
 \midrule
 10\% & about 0.67 to 0.72 & useful, but limited \\
 25\% & about 0.72 to 0.75 & already strong \\
-50\% & about 0.73 & close to 75\% in short runs \\
-75\% & about 0.73 & little extra gain in short runs \\
 100\% & about 0.76 to 0.77 & best long-run result \\
 \bottomrule
 \end{tabular}}
 
 \newcommand{\AnchorTable}{%
-\begin{tabular}{L{0.38\textwidth}C{0.17\textwidth}C{0.18\textwidth}L{0.17\textwidth}}
+\begin{tabular}{C{0.18\textwidth}C{0.25\textwidth}C{0.25\textwidth}C{0.18\textwidth}}
 \toprule
-\textbf{Training in each round} & \textbf{Start F1} & \textbf{Later F1} & \textbf{Effect} \\
+\textbf{Checkpoint} &
+\textbf{Standard F1} &
+\textbf{Pseudo-only F1} &
+\textbf{Difference} \\
 \midrule
-Synthetic labels + teacher-labeled real pages & about 0.70 & about 0.76 to 0.77 & stable gain \\
-Teacher-labeled real pages only & about 0.70 & about 0.69 & degradation \\
+81 & 0.7726 & 0.7680 & -0.0045 \\
+56 & 0.7710 & 0.7633 & -0.0077 \\
+77 & 0.7709 & 0.7595 & -0.0114 \\
+75 & 0.7708 & 0.7601 & -0.0107 \\
+78 & 0.7698 & 0.7548 & -0.0150 \\
 \bottomrule
 \end{tabular}}
 

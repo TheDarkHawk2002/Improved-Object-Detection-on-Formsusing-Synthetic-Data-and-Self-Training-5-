@@ -98,7 +98,6 @@
     \item Object detection requires bounding boxes for every text region.
     \item Creating and checking these annotations manually is time-consuming.
     \item This makes large labeled datasets expensive to create.
-    %\item Large amounts of labeled real documents are therefore difficult to obtain.
 \end{itemize}
 
 \vspace{0.8em}
@@ -106,14 +105,9 @@
 \textbf{Domain gap}
 \begin{itemize}
     \item Synthetic documents can provide additional labeled training data.
-    \item However, synthetic and real documents differ in text appearance, noise, text placement and other ways.
+    \item Real documents contain more variation in text styles, handwriting, logos and scan noise.
     \item A detector trained only on synthetic data may therefore generalize less well to real documents.
 \end{itemize}
-
-\vspace{0.8em}
-
-%\textbf{Goal:} use synthetic data to reduce the need for manual labels, then use
-%self-training to adapt the detector to real documents.
 
 \end{frame}
 
@@ -129,31 +123,27 @@
 \begin{itemize}
   \item 199 fully annotated scanned business forms
   \item 149 training forms, 50 test forms
-  \item grayscale / black and white
-  \item varying scan quality and resolution
+  \item 100 dpi rasterized documents
+  \item real scan and print noise
 \end{itemize}
-\vspace{0.35em}
-\textbf{Used here}
-\begin{itemize}
-  \item synthetic pages are generated from training layouts
-  \item final evaluation stays on real test forms
-\end{itemize}
+
 \end{columns}
 \end{frame}
 
 % 6
 \begin{frame}{Synthetic data generation}
+
 \begin{center}
 \includegraphics[width=0.94\linewidth]{assets/pipeline_crop.png}
 \end{center}
 
 \begin{itemize}
-  \item Existing annotations mark the original text regions.
-  \item Inpainting removes the original text and reconstructs the background.
-  \item This keeps the document layout and non-text structure largely intact.
-  \item New Wikipedia text is inserted and the resulting location boxes are stored.
-  %\item Bounding-box masks guide Inpaint Anything with LaMa to remove the original text and reconstruct the background from the surrounding image context.
+  \item Existing FUNSD bounding boxes define the text regions to modify.
+  \item Inpaint Anything removes the original text and reconstructs the surrounding background.
+  \item New Wikipedia text is fitted and rendered inside the available regions.
+  \item Bounding boxes are adjusted to match the newly inserted text.
 \end{itemize}
+
 \end{frame}
 
 % 7
@@ -251,9 +241,9 @@
 
 \begin{itemize}
   \item A teacher is trained from trusted labeled data.
-  \item Confident predictions on unlabeled data are treated as temporary training labels.
-  \item student trains on synthetic pages with ground-truth boxes and pseudo-labeled real pages
-  \item \textbf{Goal:} use unlabeled real data to improve the model automatically.
+  \item Predictions on unlabeled data can be used as pseudo-labels.
+  \item The student learns from labeled and pseudo-labeled data.
+  \item \textbf{Goal:} use unlabeled data without creating new manual labels.
 \end{itemize}
 
 \end{frame}
@@ -265,10 +255,12 @@
 \includegraphics[width=\linewidth]{assets/Selftraining Full-steps.png}
 \column{0.36\textwidth}
 \begin{itemize}
-  \item warm-up on synthetic pages
-  \item teacher predicts boxes on real pages
-  \item histogram threshold filters predictions
-  \item student trains on synthetic labels and teacher-labeled real pages
+  \item warm-up teacher on synthetic pages
+  \item multi-view predictions on real pages
+  \item NMS + adaptive threshold filter pseudo-labels
+  \item confidence scores weight pseudo-labeled training
+  \item student trains on synthetic + pseudo-labeled real data
+  \item synthetic-only refinement before the next teacher
 \end{itemize}
 \vspace{0.3em}
 \iffalse
@@ -334,22 +326,41 @@ The synthetic-only model is about 10 F1 points below training with real labels.
 \end{frame}
 
 
-%14
+% 14
 \begin{frame}{Synthetic variants}
+
 \begin{columns}[T]
+
 \column{0.49\textwidth}
 \begin{center}
 \includegraphics[height=5.9cm]{assets/inpainted_example.png}
 \end{center}
-\centering\textbf{Inpainting}\par
-{\scriptsize Original text is removed. The surrounding scan background is preserved.}
+
+\centering
+\textbf{Inpainted background / direct insertion}
+\par
+
+{\scriptsize
+Original text is removed by inpainting.
+New text is inserted directly into the reconstructed region.
+}
+
 \column{0.49\textwidth}
 \begin{center}
 \includegraphics[height=5.9cm]{assets/white_example.png}
 \end{center}
-\centering\textbf{White background}\par
-{\scriptsize Original text regions are replaced with white rectangles before inserting text.}
+
+\centering
+\textbf{White background}
+\par
+
+{\scriptsize
+Original text regions are replaced with white rectangles
+before new text is inserted.
+}
+
 \end{columns}
+
 \end{frame}
 
 % 15
@@ -365,7 +376,7 @@ The synthetic-only model is about 10 F1 points below training with real labels.
   \node[draw, rounded corners, fill=white, align=center, minimum width=3.3cm, minimum height=1.0cm, right=of a] (b) {\textbf{about 0.75}\\White background};
 \end{tikzpicture}
 \end{center}
-\takeaway{Inpainting has a small advantage in the stronger comparison.}
+\takeaway{The inpainted-background variant performs slightly better in the tested runs.}
 \end{frame}
 
 %16
@@ -395,65 +406,79 @@ The synthetic-only model is about 10 F1 points below training with real labels.
 
 
 % 18
-\begin{frame}{Keep trusted synthetic labels}
+\begin{frame}{Ablation: dropping synthetic data}
 
-\experimentquestion{Does keeping synthetic training data stabilize self-training?             }
-\vspace{0.35em}
-\small
-%\textbf{Important:} The synthetic pages and their ground-truth bounding boxes remain in the training set in every self-training round.
+\experimentquestion{Can performance improve by continuing with pseudo-labeled real data only?}
+
 \begin{center}
 \AnchorTable
 \end{center}
 
+\vspace{0.35em}
 
-
-\vspace{0.25em}
 \small
-\textbf{Pseudo-labeled real pages} are real images whose training boxes were generated by the teacher model.
+Each pseudo-only run starts from a strong checkpoint of the regular
+self-training process and then removes the synthetic training data.
 
 \vspace{0.45em}
-\begin{center}
-\begin{tikzpicture}[>=Stealth, node distance=1.2cm]
-  \node[draw, rounded corners, fill=white] (e) {teacher error};
-  \node[draw, rounded corners, fill=white, right=of e] (l) {used as training label};
-  \node[draw, rounded corners, fill=white, right=of l] (d) {error can repeat};
-  \draw[->, thick] (e) -- (l);
-  \draw[->, thick] (l) -- (d);
-\end{tikzpicture}
-\end{center}
 
-\takeaway{Keeping trusted synthetic data stabilizes self-training against repeated pseudo-label errors.}
+\takeaway{None of the tested pseudo-only continuations improves F1 over keeping the synthetic data.}
 
 \end{frame}
 
 % 19
-\begin{frame}{Real-label experiments}
-\experimentquestion{Is self-training still useful when the starting model already has real supervision?}
+\begin{frame}{Synthetic data with real supervision}
+
+\experimentquestion{Can synthetic data still help when real labels are already available?}
+
 \begin{center}
-    
-\begin{tabular}{lc}
+
+\begin{tabular}{L{0.55\textwidth}C{0.22\textwidth}}
 \toprule
-Experiment & F1 \\
+\textbf{Training strategy} & \textbf{F1} \\
 \midrule
-Real-only baseline & 0.801 \\
-Real-start self-training & 0.806 \\
-Real + synthetic self-training & 0.814 \\
+Real-only baseline
+& 0.8011 \\
+
+Real + synthetic, direct training
+& 0.8007 \\
+
+Real + synthetic through self-training
+& \textbf{0.8144} \\
 \bottomrule
 \end{tabular}
+
 \end{center}
-\takeaway{Self-training gives smaller gains when the supervised starting model is already strong.}
+
+\vspace{0.6em}
+
+\takeaway{Simply adding synthetic data gives no gain, while using it through self-training gives a small improvement.}
 
 \end{frame}
 
 % 20
 \begin{frame}{Main findings}
+
 \begin{enumerate}
-  \item Synthetic pages are a useful starting point: about 0.70 F1.
-  \item Self-training raises the result to about 0.77 F1.
-  \item Keeping trusted synthetic data stabilizes self-training against repeated pseudo-label errors.
-  \item Inpainting is slightly stronger than the white-background variant in the stronger comparison.
+
+  \item Synthetic-only training reaches about 0.70 F1,
+  compared with about 0.80 using real labels.
+
+  \item Synthetic-to-real self-training raises performance
+  to about 0.77 F1.
+
+  \item Removing synthetic data during self-training
+  lowers F1 in the tested continuations.
+
+  \item Inpainting performs slightly better than
+  the white-background variant.
+
+  \item With real supervision, synthetic data gives
+  an additional gain when introduced through self-training.
+
 \end{enumerate}
-\takeaway{Real labels remain strongest, but self-training closes much of the gap.}
+
+
 \end{frame}
 
 % 21
@@ -473,21 +498,27 @@ Real + synthetic self-training & 0.814 \\
 
 \textbf{Conclusion}
 \begin{itemize}
-  \item Synthetic forms are a useful starting point for text-block detection.
-  \item Self-training reduces much of the gap to real-label training.
-  \item Real supervision still performs best.
+  \item Synthetic data provides a useful starting point for text detection.
+  \item Self-training substantially reduces the synthetic-to-real gap.
+  \item Synthetic-start self-training does not fully match real-only training.
+  \item With real supervision, synthetic data can provide an additional gain through self-training.
 \end{itemize}
 
 \vspace{0.5em}
 
 \textbf{Outlook}
 \begin{itemize}
-  \item More realistic synthetic data, including fonts and handwriting.
-  \item Evaluation on additional datasets and newer detectors.
+  \item More diverse synthetic layouts, fonts and handwriting.
+  \item Evaluation on additional document datasets.
+  \item Newer object-detection architectures.
 \end{itemize}
 
 \vfill
-\begin{center}\Large\bfseries Thank you for listening.\end{center}
+
+\begin{center}
+\Large\bfseries Thank you for listening.
+\end{center}
+
 \end{frame}
 
 \iffalse
