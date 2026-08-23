@@ -56,8 +56,7 @@
 \column{0.54\textwidth}
 \begin{itemize}
   \item Forms appear in invoices, applications and administration.
-  \item Processing forms requires manual labor.
-  \item Later automated processing steps often need regions.
+  \item Automated document workflows need structured text regions.
   \item Bounding boxes are slow to create manually.
 \end{itemize}
 \column{0.42\textwidth}
@@ -98,7 +97,7 @@
 \begin{itemize}
     \item Object detection requires bounding boxes for every text region.
     \item Creating and checking these annotations manually is time-consuming.
-    \item Large amounts of labeled data is needed for model training. 
+    \item This makes large labeled datasets expensive to create.
     %\item Large amounts of labeled real documents are therefore difficult to obtain.
 \end{itemize}
 
@@ -128,10 +127,10 @@
 \column{0.40\textwidth}
 \textbf{FUNSD}
 \begin{itemize}
-  \item 199 real scanned forms
-  \item fully annotated
+  \item 199 fully annotated scanned business forms
   \item 149 training forms, 50 test forms
-  \item noisy and visually varied pages
+  \item grayscale / black and white
+  \item varying scan quality and resolution
 \end{itemize}
 \vspace{0.35em}
 \textbf{Used here}
@@ -253,7 +252,7 @@
 \begin{itemize}
   \item A teacher is trained from trusted labeled data.
   \item Confident predictions on unlabeled data are treated as temporary training labels.
-  \item The student is trained with labeled and pseudo-labeled data, then the cycle can repeat.
+  \item student trains on synthetic pages with ground-truth boxes and pseudo-labeled real pages
   \item \textbf{Goal:} use unlabeled real data to improve the model automatically.
 \end{itemize}
 
@@ -333,20 +332,9 @@ The synthetic-only model is about 10 F1 points below training with real labels.
 \vspace{0.4em}
 
 \end{frame}
-% 14
-\begin{frame}{Main result: self-training over 100 iterations}
-\experimentquestion{How does performance change as teacher-student iterations continue?}
-\begin{center}
-\begin{tikzpicture}
-  \node[inner sep=0] (img) {\includegraphics[width=0.88\linewidth]{assets/selftraining100_fullchart.png}};
-  \node[draw=greenaccent, rounded corners, fill=white, text=navy, font=\bfseries\scriptsize] at ($(img.south east)+(-1.9cm,2.45cm)$) {F1 $\approx$ 0.77};
-\end{tikzpicture}
-\end{center}
-\vspace{-0.15em}
-\begin{center}\small F1 rises from about 0.70 to about 0.77. Most of the gain appears in the first 20 iterations.\end{center}
-\end{frame}
 
-%15
+
+%14
 \begin{frame}{Synthetic variants}
 \begin{columns}[T]
 \column{0.49\textwidth}
@@ -364,7 +352,7 @@ The synthetic-only model is about 10 F1 points below training with real labels.
 \end{columns}
 \end{frame}
 
-% 16
+% 15
 \begin{frame}{Synthetic method comparison}
 \experimentquestion{Does preserving the scan background improve transfer to real forms?}
 \begin{center}
@@ -380,7 +368,7 @@ The synthetic-only model is about 10 F1 points below training with real labels.
 \takeaway{Inpainting has a small advantage in the stronger comparison.}
 \end{frame}
 
-% 17
+%16
 \begin{frame}{Amount of synthetic data}
 \experimentquestion{How much synthetic data is needed for useful self-training?}
 \begin{center}
@@ -391,14 +379,28 @@ The synthetic-only model is about 10 F1 points below training with real labels.
 \end{frame}
 
 
+% 17
+\begin{frame}{Main result: self-training over 100 iterations}
+\experimentquestion{How does performance change as teacher-student iterations continue?}
+\begin{center}
+\begin{tikzpicture}
+  \node[inner sep=0] (img) {\includegraphics[width=0.88\linewidth]{assets/selftraining100_fullchart.png}};
+  \node[draw=greenaccent, rounded corners, fill=white, text=navy, font=\bfseries\scriptsize] at ($(img.south east)+(-1.9cm,2.45cm)$) {F1 $\approx$ 0.77};
+\end{tikzpicture}
+\end{center}
+\vspace{-0.15em}
+\begin{center}\small F1 rises from about 0.70 to about 0.77. Most of the gain appears in the first 20 iterations.\end{center}
+\end{frame}
+
+
 
 % 18
 \begin{frame}{Keep trusted synthetic labels}
 
-\experimentquestion{Does keeping synthetic training data prevent error accumulation during self-training?}
+\experimentquestion{Does keeping synthetic training data stabilize self-training?             }
 \vspace{0.35em}
 \small
-\textbf{Important:} The synthetic pages and their ground-truth bounding boxes remain in the training set in every self-training round.
+%\textbf{Important:} The synthetic pages and their ground-truth bounding boxes remain in the training set in every self-training round.
 \begin{center}
 \AnchorTable
 \end{center}
@@ -420,7 +422,7 @@ The synthetic-only model is about 10 F1 points below training with real labels.
 \end{tikzpicture}
 \end{center}
 
-\takeaway{Keeping synthetic pages with trusted ground-truth boxes stabilizes the loop.}
+\takeaway{Keeping trusted synthetic data stabilizes self-training against repeated pseudo-label errors.}
 
 \end{frame}
 
@@ -428,14 +430,19 @@ The synthetic-only model is about 10 F1 points below training with real labels.
 \begin{frame}{Real-label experiments}
 \experimentquestion{Is self-training still useful when the starting model already has real supervision?}
 \begin{center}
-\includegraphics[width=0.86\linewidth]{assets/real_synth_graph.png}
+    
+\begin{tabular}{lc}
+\toprule
+Experiment & F1 \\
+\midrule
+Real-only baseline & 0.801 \\
+Real-start self-training & 0.806 \\
+Real + synthetic self-training & 0.814 \\
+\bottomrule
+\end{tabular}
 \end{center}
-\vspace{-0.1em}
-\begin{center}
-\small \textbf{0.801} real-only baseline \hspace{1cm} \textbf{0.806} real-start self-training \hspace{1cm} \textbf{0.814} real + synthetic self-training
-\end{center}
-\vspace{0.2em}
-\begin{center}\small The gain is smaller because the supervised starting model is already strong.\end{center}
+\takeaway{Self-training gives smaller gains when the supervised starting model is already strong.}
+
 \end{frame}
 
 % 20
@@ -443,7 +450,7 @@ The synthetic-only model is about 10 F1 points below training with real labels.
 \begin{enumerate}
   \item Synthetic pages are a useful starting point: about 0.70 F1.
   \item Self-training raises the result to about 0.77 F1.
-  \item Keeping synthetic labels prevents degradation from repeated pseudo-label errors.
+  \item Keeping trusted synthetic data stabilizes self-training against repeated pseudo-label errors.
   \item Inpainting is slightly stronger than the white-background variant in the stronger comparison.
 \end{enumerate}
 \takeaway{Real labels remain strongest, but self-training closes much of the gap.}
