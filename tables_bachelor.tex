@@ -1,0 +1,96 @@
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+\newcommand{\EvaluationTable}{%
+\begin{tabular}{L{0.28\textwidth}L{0.60\textwidth}}
+\toprule
+\textbf{Metric} & \textbf{Meaning} \\
+\midrule
+Precision & fraction of predicted boxes that are correct \\
+Recall & fraction of ground-truth boxes that are found \\
+F1 & harmonic mean of Precision and Recall \\
+\bottomrule
+\end{tabular}}
+
+\newcommand{\SetupTable}{%
+\begin{tabular}{L{0.30\textwidth}L{0.58\textwidth}}
+\toprule
+\textbf{Component} & \textbf{Setting} \\
+\midrule
+Detector & Faster R-CNN ResNet-50-FPN \\
+Classes & text (Background internally->F-CNN) \\
+Optimizer & SGD \\
+Metrics & Precision, Recall, F1 at IoU 0.5 \\
+Initial teacher & trained on synthetic pages \\
+Self-training & synthetic labels plus teacher-labeled real pages \\
+\bottomrule
+\end{tabular}}
+
+\newcommand{\BaselineTable}{%
+\begin{tabular}{L{0.42\textwidth}C{0.16\textwidth}C{0.16\textwidth}C{0.16\textwidth}}
+\toprule
+\textbf{Training data} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} \\
+\midrule
+Synthetic only & 0.65 & 0.76 & 0.70 \\
+Real labels only & 0.78 & 0.83 & 0.80 \\
+\bottomrule
+\end{tabular}}
+
+\newcommand{\GenerationTable}{%
+\begin{tabular}{L{0.33\textwidth}C{0.20\textwidth}L{0.36\textwidth}}
+\toprule
+\textbf{Method} & \textbf{Typical F1} & \textbf{Interpretation} \\
+\midrule
+Inpainting & about 0.76 to 0.77 & preserves more real scan background \\
+White background & about 0.75 & simpler, but adds white-box artifacts \\
+\bottomrule
+\end{tabular}}
+
+\newcommand{\SyntheticAmountTable}{%
+\begin{tabular}{C{0.18\textwidth}C{0.24\textwidth}L{0.44\textwidth}}
+\toprule
+\textbf{Synthetic share} & \textbf{F1} & \textbf{Result} \\
+\midrule
+10\% & about 0.67 to 0.72 & useful, but limited \\
+25\% & about 0.72 to 0.75 & already strong \\
+50\% & about 0.73 & close to 75\% in short runs \\
+75\% & about 0.73 & little extra gain in short runs \\
+100\% & about 0.76 to 0.77 & best long-run result \\
+\bottomrule
+\end{tabular}}
+
+\newcommand{\AnchorTable}{%
+\begin{tabular}{L{0.38\textwidth}C{0.17\textwidth}C{0.18\textwidth}L{0.17\textwidth}}
+\toprule
+\textbf{Training in each round} & \textbf{Start F1} & \textbf{Later F1} & \textbf{Effect} \\
+\midrule
+Synthetic labels + teacher-labeled real pages & about 0.70 & about 0.76 to 0.77 & stable gain \\
+Teacher-labeled real pages only & about 0.70 & about 0.69 & degradation \\
+\bottomrule
+\end{tabular}}
+
+\newcommand{\ImplementationTable}{%
+\begin{tabular}{L{0.30\textwidth}L{0.58\textwidth}}
+\toprule
+\textbf{Detail} & \textbf{Short answer} \\
+\midrule
+Dataloader & reads images plus annotation files \\
+Pseudo-labels & teacher predictions saved as PT files \\
+Adaptive threshold & 21 bins in score range 0.5 to 1.0 \\
+NMS & reduces duplicate boxes before saving \\
+Evaluation & confidence 0.5 and IoU 0.5 \\
+\bottomrule
+\end{tabular}}
+
+\newcommand{\KeyNumbersTable}{%
+\begin{tabular}{L{0.60\textwidth}C{0.24\textwidth}}
+\toprule
+\textbf{Comparison} & \textbf{Value} \\
+\midrule
+Synthetic only & F1 about 0.70 \\
+Synthetic plus self-training & F1 about 0.76 to 0.77 \\
+Real-only supervised & F1 about 0.80 \\
+Real plus synthetic self-training & F1 about 0.814 \\
+Without synthetic anchor & F1 drops to about 0.69 \\
+\bottomrule
+\end{tabular}}

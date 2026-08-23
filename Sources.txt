@@ -1,0 +1,19 @@
+Sources used to verify factual context in the presentation
+
+1. Guillaume Jaume, Hazim Kemal Ekenel, Jean-Philippe Thiran.
+   FUNSD: A Dataset for Form Understanding in Noisy Scanned Documents.
+   ICDAR Workshop / arXiv:1905.13538, 2019.
+   Relevant here: 199 real fully annotated scanned forms, noisy and varied appearance, 149 train / 50 test, tasks include text detection and OCR.
+
+2. Shaoqing Ren, Kaiming He, Ross Girshick, Jian Sun.
+   Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks.
+   IEEE TPAMI 2017 / arXiv:1506.01497.
+   Relevant here: Faster R-CNN architecture and common SGD training setup. The original implementation uses momentum 0.9 and weight decay 0.0005.
+
+3. Robin Vandeghen et al.
+   Adaptive Self-Training for Object Detection.
+   ICCV Workshops 2023.
+   Relevant here: teacher-student object detection, adaptive score-histogram thresholding, and a Faster R-CNN + FPN + ResNet-50 detector.
+
+Important distinction:
+The literature motivates the architecture and provides reasonable optimizer starting points. The exact thesis setting LR 0.006, momentum 0.8, and weight decay 0.0005 was selected from the thesis' own preliminary sweeps and then kept fixed for the main comparisons.
