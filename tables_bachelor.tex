@@ -51,7 +51,7 @@ White background & about 0.75 & simpler, but adds white-box artifacts \\
 \toprule
 \textbf{Synthetic share} & \textbf{F1} & \textbf{Result} \\
 \midrule
-10\% & about 0.67 to 0.72 & useful, but limited \\
+10\% & about 0.67 to 0.72 & still benefits from self-training \\
 25\% & about 0.72 to 0.75 & already strong \\
 100\% & about 0.76 to 0.77 & best long-run result \\
 \bottomrule
@@ -95,6 +95,6 @@ Synthetic only & F1 about 0.70 \\
 Synthetic plus self-training & F1 about 0.76 to 0.77 \\
 Real-only supervised & F1 about 0.80 \\
 Real plus synthetic self-training & F1 about 0.814 \\
-Without synthetic anchor & F1 drops to about 0.69 \\
+Dropping synthetic data & pseudo-only continuations stay below standard self-training \\
 \bottomrule
 \end{tabular}}
